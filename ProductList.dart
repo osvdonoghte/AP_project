@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 
 class CategoryProductScreen extends StatelessWidget {
-  final String
-  categoryName; // The category name passed from the previous screen
+  final String categoryName;
 
   const CategoryProductScreen({Key? key, required this.categoryName})
       : super(key: key);
@@ -18,12 +17,10 @@ class CategoryProductScreen extends StatelessWidget {
         centerTitle: true,
         backgroundColor: Colors.grey[300],
         actions: [
-          // Search bar on the right side
           Container(
             height: 40,
             width: 250,
-            margin: const EdgeInsets.only(
-                right: 16), // Move search bar to the right
+            margin: const EdgeInsets.only(right: 16),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(8),
@@ -66,9 +63,8 @@ class _SortingBar extends StatelessWidget {
           ElevatedButton(
             onPressed: () {},
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.grey[300], // Casual grey background
-              foregroundColor:
-              Colors.black, // Text color (replaces 'onPrimary')
+              backgroundColor: Colors.grey[300],
+              foregroundColor: Colors.black,
             ),
             child: const Text('بیشترین قیمت'),
           ),
@@ -76,8 +72,7 @@ class _SortingBar extends StatelessWidget {
             onPressed: () {},
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.grey[300],
-              foregroundColor:
-              Colors.black, // Text color (replaces 'onPrimary')
+              foregroundColor: Colors.black,
             ),
             child: const Text('کمترین قیمت'),
           ),
@@ -85,8 +80,7 @@ class _SortingBar extends StatelessWidget {
             onPressed: () {},
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.grey[300],
-              foregroundColor:
-              Colors.black, // Text color (replaces 'onPrimary')
+              foregroundColor: Colors.black,
             ),
             child: const Text('پرفروش‌ترین'),
           ),
@@ -97,12 +91,11 @@ class _SortingBar extends StatelessWidget {
 }
 
 class _ProductList extends StatelessWidget {
-  // Sample data for products
   final List<ProductEntity> products = [
     ProductEntity(
       id: 1,
       name: 'Product 1',
-      imageUrl: 'assets/product1.png',
+      imageUrl: 'https://m.media-amazon.com/images/I/61Ey-4KNcYL._AC_SY550_.jpg',
       price: 1000,
       originalPrice: 1200,
       rating: 4.5,
@@ -110,7 +103,7 @@ class _ProductList extends StatelessWidget {
     ProductEntity(
       id: 2,
       name: 'Product 2',
-      imageUrl: 'assets/product2.png',
+      imageUrl: 'https://m.media-amazon.com/images/I/61Ey-4KNcYL._AC_SY550_.jpg',
       price: 800,
       originalPrice: 1000,
       rating: 4.0,
@@ -118,7 +111,7 @@ class _ProductList extends StatelessWidget {
     ProductEntity(
       id: 3,
       name: 'Product 3',
-      imageUrl: 'assets/product3.png',
+      imageUrl: 'https://www.net-a-porter.com/variants/images/1647597292605947/in/w920_q60.jpg',
       price: 1500,
       originalPrice: 1600,
       rating: 5.0,
@@ -131,12 +124,12 @@ class _ProductList extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
       child: GridView.builder(
         shrinkWrap: true,
-        physics: NeverScrollableScrollPhysics(),
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2, // Number of columns in grid
-          crossAxisSpacing: 16.0, // Spacing between items
-          mainAxisSpacing: 16.0, // Spacing between rows
-          childAspectRatio: 0.8, // Adjust the aspect ratio for smaller cards
+        physics: const NeverScrollableScrollPhysics(),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          crossAxisSpacing: 16.0,
+          mainAxisSpacing: 16.0,
+          childAspectRatio: 0.8,
         ),
         itemCount: products.length,
         itemBuilder: (context, index) {
@@ -161,14 +154,13 @@ class _ProductItem extends StatelessWidget {
         borderRadius: BorderRadius.circular(12.0),
       ),
       color: Colors.grey[100],
-      elevation: 4, // Adds shadow to make the box look better
+      elevation: 4,
       child: Padding(
-        padding: const EdgeInsets.all(
-            8.0), // Reduces padding to make the box smaller
+        padding: const EdgeInsets.all(8.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Image.asset(
+            Image.network(
               product.imageUrl,
               width: 100,
               height: 100,
@@ -178,10 +170,10 @@ class _ProductItem extends StatelessWidget {
             Text(
               product.name,
               style: const TextStyle(
-                fontSize: 14, // Smaller font size
+                fontSize: 14,
                 fontWeight: FontWeight.bold,
               ),
-              overflow: TextOverflow.ellipsis, // Handles long names
+              overflow: TextOverflow.ellipsis,
             ),
             const SizedBox(height: 4),
             Row(
@@ -209,11 +201,7 @@ class _ProductItem extends StatelessWidget {
             const SizedBox(height: 8),
             Row(
               children: [
-                Icon(
-                  Icons.star,
-                  color: Colors.amber,
-                  size: 14,
-                ),
+                Icon(Icons.star, color: Colors.amber, size: 14),
                 const SizedBox(width: 4),
                 Text(
                   product.rating.toString(),
@@ -225,10 +213,8 @@ class _ProductItem extends StatelessWidget {
             Align(
               alignment: Alignment.bottomRight,
               child: IconButton(
-                icon: Icon(Icons.add_shopping_cart, color: Colors.black),
-                onPressed: () {
-                  // Add product to cart
-                },
+                icon: const Icon(Icons.add_shopping_cart, color: Colors.black),
+                onPressed: () {},
               ),
             ),
           ],
@@ -238,7 +224,6 @@ class _ProductItem extends StatelessWidget {
   }
 }
 
-/// Models
 class ProductEntity {
   final int id;
   final String name;
@@ -261,8 +246,7 @@ void main() {
   runApp(
     MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: CategoryProductScreen(
-          categoryName: 'Electronics'), // Example category name
+      home: CategoryProductScreen(categoryName: 'Electronics'),
     ),
   );
 }
