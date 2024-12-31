@@ -26,6 +26,14 @@ class _PaymentPageState extends State<PaymentPage> {
     final String cardPassword = _cardPasswordController.text.trim();
     final String cardNumber = _cardNumberController.text.trim();
 
+    if (cardNumber.length != 16) {
+      setState(() {
+        errorMessage = 'شماره کارت باید دقیقا 16 رقم باشد';
+        successMessage = null; // Clear any previous success message
+      });
+      return;
+    }
+
     if (cardPassword != correctPassword) {
       setState(() {
         errorMessage = 'رمز عبور نادرست است';
