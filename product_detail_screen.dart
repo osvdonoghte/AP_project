@@ -1,56 +1,5 @@
 import 'package:flutter/material.dart';
-
-void main() {
-  runApp(MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      home: ProductDetailScreen(
-        productName: 'کتونی اسپورت',
-        productImageUrl: 'https://via.placeholder.com/200',
-        previousPrice: 200000,
-        currentPrice: 150000,
-        description: 'این کتونی برای دویدن و راه رفتن مناسب است.',
-        seller: 'فروشگاه ورزشی',
-        rating: 4.4,
-        stock: 20,
-        sold: 50,
-        reviews: [
-          {
-            'text': 'خیلی خوبه!',
-            'likes': 0,
-            'dislikes': 0,
-            'date': DateTime(2024, 12, 30)
-          },
-          {
-            'text': 'کیفیت مناسب دارد.',
-            'likes': 0,
-            'dislikes': 0,
-            'date': DateTime(2024, 12, 29)
-          },
-          {
-            'text': 'خیلی رضایت داشتم.',
-            'likes': 0,
-            'dislikes': 0,
-            'date': DateTime(2024, 12, 28)
-          },
-        ],
-      ),
-      debugShowCheckedModeBanner: false,
-      builder: (context, child) {
-        return Directionality(
-          textDirection: TextDirection.rtl,
-          child: child!,
-        );
-      },
-    );
-  }
-}
+import 'cart_screen.dart';
 
 class ProductDetailScreen extends StatefulWidget {
   final String productName;
@@ -63,6 +12,7 @@ class ProductDetailScreen extends StatefulWidget {
   final int stock;
   final int sold;
   final List<Map<String, dynamic>> reviews;
+  final Function(CartItem) addToCart;
 
   const ProductDetailScreen({
     Key? key,
@@ -76,6 +26,7 @@ class ProductDetailScreen extends StatefulWidget {
     required this.stock,
     required this.sold,
     required this.reviews,
+    required this.addToCart,
   }) : super(key: key);
 
   @override
@@ -165,23 +116,17 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             const SizedBox(height: 24),
             ElevatedButton(
               onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('محصول به سبد خرید اضافه شد!'),
-                  ),
+                CartItem cartItem = CartItem(
+                  name: widget.productName,
+                  imageUrl: widget.productImageUrl,
+                  quantity: 1,
+                  originalPrice: widget.previousPrice,
+                  discountedPrice: widget.currentPrice,
                 );
+                widget.addToCart(cartItem);
+                Navigator.pop(context);
               },
               child: const Text('افزودن به سبد خرید'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('محصول به لیست علاقه‌مندی‌ها اضافه شد!'),
-                  ),
-                );
-              },
-              child: const Text('افزودن به لیست علاقه‌مندی‌ها'),
             ),
             const SizedBox(height: 24),
             const Text(
