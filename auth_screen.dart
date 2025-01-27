@@ -1,5 +1,5 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:socket_io_client/socket_io_client.dart' as IO;
 import 'home_screen.dart';
 import 'user_profile_page.dart';
 import 'dart:io';
@@ -15,7 +15,7 @@ Future<void> signUp(String username, String password) async {
   try {
     // For local testing, use 127.0.0.1 if you're on iOS simulator or desktop.
     // If you're on Android emulator, consider 10.0.2.2
-   final socket = await Socket.connect('10.0.2.2', 12345);
+    final socket = await Socket.connect('10.0.2.2', 12345);
     print('Connected to: ${socket.remoteAddress.address}:${socket.remotePort}');
 
     // Send the signup command
@@ -44,7 +44,6 @@ Future<void> signUp(String username, String password) async {
   }
 }
 
-
 class _AuthScreenState extends State<AuthScreen> {
   final TextEditingController usernameController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
@@ -52,113 +51,13 @@ class _AuthScreenState extends State<AuthScreen> {
       TextEditingController();
   bool isLoginMode = true;
   String errorMessage = '';
-  late IO.Socket socket;
-
-  @override
-  void initState() {
-    super.initState();
-    _initializeSocket();
-  }
-
-  void _initializeSocket() {
-    socket = IO.io(
-      'http://localhost:8080', 
-      IO.OptionBuilder()
-          .setTransports(['websocket'])
-          .disableAutoConnect()
-          .build(),
-    );
-
-    socket.onConnect((_) {
-      print('Connected to server');
-    });
-
-    socket.onDisconnect((_) {
-      print('Disconnected from server');
-    });
-
-    socket.onError((data) {
-      setState(() {
-        errorMessage = 'Server error: $data';
-      });
-    });
-
-    socket.connect();
-  }
-
-  @override
-  void dispose() {
-    socket.dispose();
-    super.dispose();
-  }
-
-  String? validateEmail(String email) {
-    final regex = RegExp(r'^[^@]+@[^@]+\.[^@]+');
-    if (!regex.hasMatch(email)) {
-      return 'لطفا یک ایمیل معتبر وارد کنید';
-    }
-    return null;
-  }
-
-  String? validatePassword(String password) {
-    final regex = RegExp(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$');
-    if (!regex.hasMatch(password)) {
-      return 'رمز عبور باید حداقل ۸ حرف باشد، شامل یک حرف بزرگ، یک حرف کوچک و یک عدد باشد';
-    }
-    if (password.contains(usernameController.text)) {
-      return 'رمز عبور نباید شامل نام کاربری باشد';
-    }
-    return null;
-  }
-
-  void loginOrRegister() {
-    final emailError = validateEmail(usernameController.text);
-    final passwordError = validatePassword(passwordController.text);
-    if (emailError != null || passwordError != null) {
-      setState(() {
-        errorMessage = emailError ?? passwordError!;
-      });
-      return;
-    }
-    if (!isLoginMode && passwordController.text != confirmPasswordController.text) {
-      setState(() {
-        errorMessage = 'رمز عبور و تکرار آن مطابقت ندارند';
-      });
-      return;
-    }
-
-    final userData = {
-      'email': usernameController.text,
-      'password': passwordController.text,
-    };
-
-    final event = isLoginMode ? 'login' : 'register';
-    socket.emit(event, userData);
-
-    socket.on('$event_success', (data) {
-      print('$event success: $data');
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => HomeScreen(),
-        ),
-      );
-    });
-
-    socket.on('$event_failed', (data) {
-      setState(() {
-        errorMessage = 'خطا: $data';
-      });
-    });
-  }
+  late UserDetails userDetails;
 
   @override
   Widget build(BuildContext context) {
     final ThemeData themeData = Theme.of(context);
     const onBackground = Colors.white;
 
-<<<<<<< Updated upstream
-=======
     String? validateEmail(String email) {
       final regex = RegExp(r'^[^@]+@[^@]+\.[^@]+');
       if (!regex.hasMatch(email)) {
@@ -211,7 +110,6 @@ class _AuthScreenState extends State<AuthScreen> {
       );
     }
 
->>>>>>> Stashed changes
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
@@ -309,6 +207,39 @@ class _AuthScreenState extends State<AuthScreen> {
         ),
       ),
     );
+  }
+}
+
+class LoginService {
+  final String serverAddress;
+  final int port;
+
+  LoginService({required this.serverAddress, required this.port});
+
+  Future<String> login(String username, String password) async {
+    try {
+      final socket = await Socket.connect(serverAddress, port);
+      print(
+          'Connected to: ${socket.remoteAddress.address}:${socket.remotePort}');
+
+      // Send the login request to the server
+      socket.write('LOGIN||$username||$password\n');
+      await socket.flush();
+
+      // Collect the response data
+      List<int> responseBytes = [];
+      await socket.listen((data) {
+        responseBytes.addAll(data);
+      }).asFuture();
+
+      socket.destroy();
+
+      // Decode response bytes to String
+      String response = String.fromCharCodes(responseBytes);
+      return response;
+    } catch (e) {
+      return 'ERROR: Unable to connect to server - $e';
+    }
   }
 }
 
