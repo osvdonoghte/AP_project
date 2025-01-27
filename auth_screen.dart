@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 import 'home_screen.dart';
 import 'user_profile_page.dart';
+import 'dart:io';
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({Key? key}) : super(key: key);
@@ -10,10 +11,45 @@ class AuthScreen extends StatefulWidget {
   _AuthScreenState createState() => _AuthScreenState();
 }
 
+Future<void> signUp(String username, String password) async {
+  try {
+    // For local testing, use 127.0.0.1 if you're on iOS simulator or desktop.
+    // If you're on Android emulator, consider 10.0.2.2
+   final socket = await Socket.connect('10.0.2.2', 12345);
+    print('Connected to: ${socket.remoteAddress.address}:${socket.remotePort}');
+
+    // Send the signup command
+    socket.write('SIGNUP||$username||$password\n');
+    await socket.flush();
+
+    // Listen for the response from the server
+    socket.listen(
+      (data) {
+        final response = String.fromCharCodes(data).trim();
+        print('Server response: $response');
+        // Once you have the response, you can handle it (show a dialog, etc.)
+        socket.destroy();
+      },
+      onError: (error) {
+        print('Error: $error');
+        socket.destroy();
+      },
+      onDone: () {
+        print('Server closed connection');
+        socket.destroy();
+      },
+    );
+  } catch (e) {
+    print('Could not connect to the server: $e');
+  }
+}
+
+
 class _AuthScreenState extends State<AuthScreen> {
   final TextEditingController usernameController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-  final TextEditingController confirmPasswordController = TextEditingController();
+  final TextEditingController confirmPasswordController =
+      TextEditingController();
   bool isLoginMode = true;
   String errorMessage = '';
   late IO.Socket socket;
@@ -121,6 +157,61 @@ class _AuthScreenState extends State<AuthScreen> {
     final ThemeData themeData = Theme.of(context);
     const onBackground = Colors.white;
 
+<<<<<<< Updated upstream
+=======
+    String? validateEmail(String email) {
+      final regex = RegExp(r'^[^@]+@[^@]+\.[^@]+');
+      if (!regex.hasMatch(email)) {
+        return 'لطفا یک ایمیل معتبر وارد کنید';
+      }
+      return null;
+    }
+
+    String? validatePassword(String password) {
+      final regex = RegExp(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$');
+      if (!regex.hasMatch(password)) {
+        return 'رمز عبور باید حداقل ۸ حرف باشد، شامل یک حرف بزرگ، یک حرف کوچک و یک عدد باشد';
+      }
+      if (password.contains(usernameController.text)) {
+        return 'رمز عبور نباید شامل نام کاربری باشد';
+      }
+      return null;
+    }
+
+    void loginOrRegister() {
+      final emailError = validateEmail(usernameController.text);
+      final passwordError = validatePassword(passwordController.text);
+      if (emailError != null || passwordError != null) {
+        setState(() {
+          errorMessage = emailError ?? passwordError!;
+        });
+        return;
+      }
+      if (!isLoginMode &&
+          passwordController.text != confirmPasswordController.text) {
+        setState(() {
+          errorMessage = 'رمز عبور و تکرار آن مطابقت ندارند';
+        });
+        return;
+      }
+
+      // ذخیره اطلاعات کاربر
+      userDetails = UserDetails(
+        email: usernameController.text,
+        password: passwordController.text,
+        username: usernameController.text,
+      );
+
+      // ناوبری به صفحه هوم
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => HomeScreen(), // تغییر صفحه به HomeScreen
+        ),
+      );
+    }
+
+>>>>>>> Stashed changes
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
@@ -198,7 +289,9 @@ class _AuthScreenState extends State<AuthScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      isLoginMode ? 'حساب کاربری ندارید؟' : 'حساب کاربری دارید؟',
+                      isLoginMode
+                          ? 'حساب کاربری ندارید؟'
+                          : 'حساب کاربری دارید؟',
                       style: TextStyle(color: onBackground.withOpacity(0.7)),
                     ),
                     const SizedBox(width: 8),
