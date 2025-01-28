@@ -71,7 +71,7 @@ public class LoginServer {
                     String line;
                     while ((line = reader.readLine()) != null) {
                         String[] parts = line.split(" ");
-                        if (parts.length == 2 && parts[0].equals(username) && parts[1].equals(password)) {
+                        if (parts.length >= 4 && parts[0].equals(username) && parts[2].equals(password)) {
                             return true;
                         }
                     }
@@ -81,5 +81,6 @@ public class LoginServer {
                 return false;
             }
         }
-    }
+        
+            }
 }
