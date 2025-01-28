@@ -11,23 +11,21 @@ class AuthScreen extends StatefulWidget {
   _AuthScreenState createState() => _AuthScreenState();
 }
 
-Future<void> signUp(String username, String password) async {
+Future<void> signUp(String username, String email, String password) async {
   try {
-    // For local testing, use 127.0.0.1 if you're on iOS simulator or desktop.
-    // If you're on Android emulator, consider 10.0.2.2
+    // Connect to the server
     final socket = await Socket.connect('10.0.2.2', 12345);
     print('Connected to: ${socket.remoteAddress.address}:${socket.remotePort}');
 
-    // Send the signup command
-    socket.write('SIGNUP||$username||$password\n');
+    // Send signup data to the server in the format: "SIGNUP||username||email||password"
+    socket.write('$username $email $password\n');
     await socket.flush();
 
-    // Listen for the response from the server
+    // Listen for the server's response
     socket.listen(
       (data) {
         final response = String.fromCharCodes(data).trim();
         print('Server response: $response');
-        // Once you have the response, you can handle it (show a dialog, etc.)
         socket.destroy();
       },
       onError: (error) {
@@ -45,6 +43,7 @@ Future<void> signUp(String username, String password) async {
 }
 
 class _AuthScreenState extends State<AuthScreen> {
+  final TextEditingController emailController = TextEditingController();
   final TextEditingController usernameController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController confirmPasswordController =
@@ -78,7 +77,7 @@ class _AuthScreenState extends State<AuthScreen> {
     }
 
     void loginOrRegister() {
-      final emailError = validateEmail(usernameController.text);
+      final emailError = validateEmail(emailController.text);
       final passwordError = validatePassword(passwordController.text);
       if (emailError != null || passwordError != null) {
         setState(() {
@@ -94,18 +93,16 @@ class _AuthScreenState extends State<AuthScreen> {
         return;
       }
 
-      // ذخیره اطلاعات کاربر
       userDetails = UserDetails(
-        email: usernameController.text,
+        email: emailController.text,
         password: passwordController.text,
         username: usernameController.text,
       );
 
-      // ناوبری به صفحه هوم
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (context) => HomeScreen(), // تغییر صفحه به HomeScreen
+          builder: (context) => HomeScreen(),
         ),
       );
     }
@@ -120,11 +117,6 @@ class _AuthScreenState extends State<AuthScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Image.asset(
-                'assets/img/nike_logo.png',
-                color: Colors.white,
-                width: 120,
-              ),
               const SizedBox(height: 24),
               Text(
                 isLoginMode ? 'خوش آمدید' : 'ثبت نام',
@@ -138,8 +130,17 @@ class _AuthScreenState extends State<AuthScreen> {
                 style: const TextStyle(color: onBackground, fontSize: 16),
               ),
               const SizedBox(height: 24),
+              if (!isLoginMode)
+                TextField(
+                  controller: usernameController,
+                  decoration: const InputDecoration(
+                    labelText: 'نام کاربری',
+                  ),
+                  onChanged: (_) => setState(() => errorMessage = ''),
+                ),
+              const SizedBox(height: 16),
               TextField(
-                controller: usernameController,
+                controller: emailController,
                 keyboardType: TextInputType.emailAddress,
                 decoration: const InputDecoration(
                   labelText: 'آدرس ایمیل',
@@ -207,39 +208,6 @@ class _AuthScreenState extends State<AuthScreen> {
         ),
       ),
     );
-  }
-}
-
-class LoginService {
-  final String serverAddress;
-  final int port;
-
-  LoginService({required this.serverAddress, required this.port});
-
-  Future<String> login(String username, String password) async {
-    try {
-      final socket = await Socket.connect(serverAddress, port);
-      print(
-          'Connected to: ${socket.remoteAddress.address}:${socket.remotePort}');
-
-      // Send the login request to the server
-      socket.write('LOGIN||$username||$password\n');
-      await socket.flush();
-
-      // Collect the response data
-      List<int> responseBytes = [];
-      await socket.listen((data) {
-        responseBytes.addAll(data);
-      }).asFuture();
-
-      socket.destroy();
-
-      // Decode response bytes to String
-      String response = String.fromCharCodes(responseBytes);
-      return response;
-    } catch (e) {
-      return 'ERROR: Unable to connect to server - $e';
-    }
   }
 }
 

@@ -11,8 +11,8 @@ import java.net.Socket;
 
 public class SignupServer {
     private static final int PORT = 12345;
-    
-    // File to store user details (username||password)
+
+    // File to store user details
     private static final String USER_FILE = "Users.txt";
 
     public static void main(String[] args) {
@@ -35,29 +35,28 @@ public class SignupServer {
 
     private static void handleClient(Socket clientSocket) {
         try (
-            BufferedReader in = new BufferedReader(
-                new InputStreamReader(clientSocket.getInputStream())
-            );
+            BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
             PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true)
         ) {
-            // Read a line from the client: e.g. "SIGNUP||john_doe||secret123"
-            String command = in.readLine();  
+            // Read a line from the client: e.g. "username email password"
+            String command = in.readLine();
 
-            if (command != null && command.startsWith("SIGNUP")) {
-                String[] parts = command.split("\\|\\|");
-                // Expected: parts[0] = "SIGNUP", parts[1] = username, parts[2] = password
+            if (command != null) {
+                String[] parts = command.split(" ");
+                // Expected: parts[0] = username, parts[1] = email, parts[2] = password
                 if (parts.length == 3) {
-                    String username = parts[1];
+                    String username = parts[0];
+                    String email = parts[1];
                     String password = parts[2];
 
                     // Handle signup (check/append to file)
-                    String result = handleSignup(username, password);
+                    String result = handleSignup(username, email, password);
                     out.println(result);
                 } else {
                     out.println("ERROR: Invalid data format");
                 }
             } else {
-                out.println("ERROR: Unknown command");
+                out.println("ERROR: No command received");
             }
 
         } catch (IOException e) {
@@ -71,8 +70,8 @@ public class SignupServer {
         }
     }
 
-    private static synchronized String handleSignup(String username, String password) {
-        // Check if users.txt exists; if not, create it
+    private static synchronized String handleSignup(String username, String email, String password) {
+        // Check if Users.txt exists; if not, create it
         File file = new File(USER_FILE);
         try {
             if (!file.exists()) {
@@ -83,17 +82,16 @@ public class SignupServer {
             return "ERROR: Could not create user file";
         }
 
-        // 1) Check if the username already exists
+        // 1) Check if the email already exists
         try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
             String line;
             while ((line = reader.readLine()) != null) {
-                // Each line format: username||password
-                String[] tokens = line.split("\\|\\|");
-                if (tokens.length == 2) {
-                    String existingUsername = tokens[0];
-                    // Compare to see if user already exists
-                    if (existingUsername.equals(username)) {
-                        return "ERROR: Username already exists";
+                // Each line format: username email password معمولی
+                String[] tokens = line.split(" ");
+                if (tokens.length >= 2) {
+                    String existingEmail = tokens[1];  // Email is the second field
+                    if (existingEmail.equals(email)) {
+                        return "ERROR: Email already exists";
                     }
                 }
             }
@@ -102,10 +100,9 @@ public class SignupServer {
             return "ERROR: Could not read user file";
         }
 
-        // 2) If user does not exist, append to file
+        // 2) If email does not exist, append to file
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(file, true))) {
-            // Append a newline if the file isn't empty
-            writer.write(username + "||" + password);
+            writer.write(username + " " + email + " " + password + " معمولی");
             writer.newLine();
             writer.flush();
             return "SUCCESS: User created";

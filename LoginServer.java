@@ -4,7 +4,7 @@ import java.net.*;
 
 public class LoginServer {
     private static final int PORT = 12345;
-    private static final String USER_FILE = "users.txt";
+    private static final String USER_FILE = "Users.txt";
 
     public static void main(String[] args) {
         try (ServerSocket serverSocket = new ServerSocket(PORT)) {
